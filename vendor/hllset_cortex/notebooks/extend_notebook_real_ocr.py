@@ -267,7 +267,7 @@ md("""---
 | Tokenization | Real ds-OCR BPE tokenizer -> 128K vocab |
 | HLLSet | IICA-compliant with real token IDs OK |
 | gate_TF | Built from token vocabulary subset OK |
-| Materialization (set) | TF-ranked from persistent LUT OK |
+| Materialization (set) | n-gram disambiguation, TF tie-break from persistent LUT OK |
 | Materialization (ordered) | De Bruijn Eulerian path via `materialize_debruijn` OK |
 | Gate filtering | tid99999 + tid88888 removed OK |
 | OCR inference | Successful on RTX 3060 (Gundam mode) OK |
