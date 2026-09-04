@@ -1,0 +1,22 @@
+# Python / bytecode
+__pycache__/
+*.py[codz]
+*.so
+.ipynb_checkpoints/
+*.egg-info/
+
+# Model weights and captures (gitignored, cached in ~/.cache/huggingface)
+models/
+captures/
+*.pt
+*.pth.tar
+*.safetensors
+
+# Environments
+.venv/
+env/
+venv/
+target/
+
+# Local IDE
+.vscode/

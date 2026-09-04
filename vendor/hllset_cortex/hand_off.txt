@@ -1,0 +1,61 @@
+# hllset-cortex — Handoff
+
+> **Date:** August 2026
+> **Repo:** DeepSeek-OCR/hllset_cortex (branch `feature/hllset-cortex-git`)
+> **Vision:** the previous projects (EWM-nanoLM, caal-llm) were built for a
+> narrower scope and their docs reflect it. This project is the implementation
+> of a **much wider vision** — EWM as the grounding/search engine for an LLM.
+> New features found here are a reflection of that wider vision and **live
+> here** (hllset-cortex), not pushed back upstream.
+
+## State — committed (11 commits, all proofs green)
+
+Proofs: `notebooks/phase7_ewm_llm_loop.py`, `notebooks/search_page_level.py`.
+
+1. `49b7a18` Phase 7 loop: exact-LUT gate, grounding, DRN, temporal pyramid, feeder
+2. `71ff1b3` page-level search: page atoms (`o:`) + document view (`v:`), R-link
+3. `f6df654` BSS τ/ρ measurement (gated); gate doc reconciled (tunable leak)
+4. `500aa79` coverage/overlap unified (naming drift)
+5. `6150753` query → HLLSet → submitted to the lattice (measured)
+6. `76d0559` encoder bypassable: voc-Gate is the correctness boundary
+7. `489a6ae` token/HLLSet space separation
+8. `8741cd2` token vs structural hallucination (LUT diagnoses, never hallucinates)
+9. `7334cff` same-scale requirement for BSS ρ
+10. `8ec8625` precedent retrieval from the temporal-pyramid history
+11. `7fa61bb` precedents rank by BSS τ (symmetry with search)
+
+New modules: `grounding.py`, `temporal.py`, `search.py`, `lattice.py`
+(+ `domain.py`: `tid` / `hllset_from_ids`).
+
+## Principles crystallized this phase
+
+- **Two spaces, two morphisms.** Tokens (encodings) and HLLSets never cross
+  directly; only `ingest` (tokens → HLLSet, hash + bootstrap) and
+  `materialize` (HLLSet → tokens). Structural ops (BSS, R-link, DRN, pyramid)
+  are HLLSet-space; LLM interchange + TokenLUT are token-space.
+- **Two hallucination diagnoses.** Token hallucination (LUT flags unknown
+  encodings) vs structural hallucination (BSS ρ flags departure). The LUT
+  never hallucinates; the HLLSet the LLM produces does.
+- **Exact-LUT gate** (0 leak / 0 FN) ⇒ the ds-ocr encoder is bypassable.
+- **One operation, three views.** search / shallow grounding / deep grounding
+  (precedents) are the same R-link/BSS comparison over different reference sets.
+- **BSS ρ needs same-scale cardinalities** (cardinality = the '1'-bit
+  distribution in the fixed 32,768-bit vector).
+
+## Next (tomorrow)
+
+1. **Extend `01_ocr_hllset_pipeline_real.ipynb`** (runs hllset-cortex on real
+   ds-ocr) with the new grounding features:
+   - **search** — page-level retrieval,
+   - **hallucination diagnostics** — token + structural,
+   - **localization** — resolve to the page.
+2. **Implement the EWM ↔ LLM interchange protocol changes** (Part X in
+   hllset-next `STANDARD.md`): the two-spaces/two-morphisms boundary,
+   token-vs-structural hallucination, exact-LUT gate, encoder bypassability,
+   precedents. Reflect them in the protocol/standard.
+
+## Uncommitted
+
+- `notebooks/prove_ewm_grounding.ipynb` + `.py` (pre-existing, untracked).
+- Pre-existing uncommitted state in `EWM-nanoLM`, `hllset-next` (STANDARD.md),
+  and `EWM` — untouched this phase.

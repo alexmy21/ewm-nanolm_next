@@ -1,0 +1,13 @@
+[build-system]
+requires = ["maturin>=1.0"]
+build-backend = "maturin"
+
+[project]
+name = "hllset-py"
+version = "0.1.0"
+description = "Python bindings for hllset-core — HLLSet algebra engine"
+requires-python = ">=3.10"
+
+[tool.maturin]
+module-name = "hllset_py"
+bindings = "pyo3"

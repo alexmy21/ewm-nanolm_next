@@ -1,0 +1,13 @@
+[package]
+name = "hllset-py"
+version = "0.1.0"
+edition = "2021"
+description = "Python bindings for hllset-next — HLLSet algebra, tokenization, and materialization"
+
+[lib]
+name = "hllset_py"
+crate-type = ["cdylib"]
+
+[dependencies]
+hllset-core = { path = "./vendor/hllset-core" }
+pyo3 = { version = "0.23", features = ["extension-module", "abi3-py310"] }
