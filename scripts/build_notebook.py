@@ -133,11 +133,14 @@ print("gate popcount:", pipe.gate.popcount())
 print("gate CID     :", pipe.gate.content_key())
 print("gate tids    :", len(all_prompt_tids))
 '''),
-    md('''## 4. HLLSetFilter — LUT + TF-ranked materialization
+    md('''## 4. HLLSetFilter — LUT + n-gram disambiguation (TF tie-break)
 
-The LUT accumulates TF for every tid the model has seen — pre-gate,
-monotonic, never reset.  Materialization returns the highest-TF token at each
-active bit position (the Type-1 forward model).'''),
+The LUT records, for every bit position, every tid that hashes there with
+its TF — pre-gate, monotonic, never reset.  Materialization disambiguates
+the LUT candidates using n-grams (multiple measurement views of the same
+stream); TF is used only to finalize the selection when more than one token
+still maps to the same bits in the given HLLSet (the Type-1 forward
+model).'''),
     code('''\
 filt = HLLSetFilter()
 filt.tokenizer = encoding_tokenizer()

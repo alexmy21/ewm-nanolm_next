@@ -48,7 +48,7 @@ prompt ──► tokenizer ──► token IDs "tid671 tid18308 ..."
                             ▼  HLLSet lattice (IICA)
                  gate_TF = model vocabulary ∩ · LUT · DRN · BSS · pyramid
                             │
-                            ▼  materialize (TF-ranked, De Bruijn)
+                            ▼  materialize (n-gram disambiguation, TF tie-break)
                             │
                             ▼  restored token IDs
                             │
