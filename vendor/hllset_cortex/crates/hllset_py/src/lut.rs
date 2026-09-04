@@ -145,30 +145,65 @@ impl PyTokenLut {
 
 // ── Materialization ─────────────────────────────────────────────────────
 
-/// Materialize an HLLSet back to tokens via the LUT, TF-ranked.
+/// Materialize an HLLSet back to its unigram token set.
 ///
-/// For each active bit position in the HLLSet, resolves to the token
-/// with the highest TF among all candidates at that position.
-///
-/// This is the primary disambiguation mechanism: when multiple tokens
-/// collide at the same hash position, the one with the most experience
-/// (highest TF) wins.
+/// Disambiguation per active bit position:
+/// 1. Only unigram candidates (no NUL separator) are emitted; n-gram tokens
+///    are used as evidence, not as output.
+/// 2. When n-gram evidence is present in the HLLSet, candidates supported by
+///    it win — a unigram is supported when it appears as a component of an
+///    n-gram (NUL-separated) candidate at one of the HLLSet's active
+///    positions.
+/// 3. TF is used only to finalize the selection when more than one candidate
+///    remains after n-gram disambiguation.  Remaining ties break
+///    deterministically (lexicographically smallest token wins).
 #[pyfunction]
 pub fn materialize(hllset: &PyHLLSet, lut: &PyTokenLut) -> Vec<String> {
+    let positions = hllset.inner.active_positions();
+
+    // Collect the n-gram evidence present in this HLLSet: every unigram that
+    // appears as a component of an NUL-separated n-gram candidate at an
+    // active position.
+    let mut ngram_supported: HashSet<String> = HashSet::new();
+    for (reg, tz) in &positions {
+        for token in lut.lookup_position(*reg, *tz) {
+            if token.contains('\0') {
+                for part in token.split('\0') {
+                    ngram_supported.insert(part.to_string());
+                }
+            }
+        }
+    }
+
     let mut seen: HashSet<String> = HashSet::new();
     let mut result = Vec::new();
 
-    for (reg, tz) in hllset.inner.active_positions() {
-        let candidates = lut.lookup_position(reg, tz);
+    for (reg, tz) in &positions {
+        let mut candidates: Vec<String> = lut
+            .lookup_position(*reg, *tz)
+            .into_iter()
+            .filter(|t| !t.contains('\0'))
+            .collect();
         if candidates.is_empty() {
             continue;
         }
 
-        // Select highest-TF token at this position
-        let best = candidates
-            .iter()
-            .max_by_key(|t| lut.tf(t))
-            .cloned();
+        // n-gram disambiguation: prefer candidates supported by the n-gram
+        // evidence in this HLLSet (when such evidence exists).
+        if !ngram_supported.is_empty() {
+            let supported: Vec<String> = candidates
+                .iter()
+                .filter(|t| ngram_supported.contains(*t))
+                .cloned()
+                .collect();
+            if !supported.is_empty() {
+                candidates = supported;
+            }
+        }
+
+        // TF finalizes the selection; equal TFs break deterministically.
+        candidates.sort_by(|a, b| lut.tf(b).cmp(&lut.tf(a)).then_with(|| a.cmp(b)));
+        let best = candidates.into_iter().next();
 
         if let Some(token) = best {
             if seen.insert(token.clone()) {

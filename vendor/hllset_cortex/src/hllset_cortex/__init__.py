@@ -12,7 +12,7 @@ Architecture:
       → MurmurHash3 → HLLSet (32,768-bit bitmap)
         → ∩ gate_TF HLLSet (decoder vocabulary filter)
           → TokenLut (monotonic TF accumulation)
-            → TF-ranked materialization → restored IDs → Decoder
+            → materialization (n-gram disambiguation, TF tie-break) → restored IDs → Decoder
 
 Key properties (IICA):
     - Idempotent: same IDs → same HLLSet, every time

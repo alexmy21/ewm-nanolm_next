@@ -11,7 +11,7 @@ Architecture (per STANDARD.md):
       → MurmurHash3 → HLLSet (32,768-bit bitmap)
         → ∩ gate_TF HLLSet (decoder vocabulary filter)
           → TokenLut (monotonic TF accumulation)
-            → materialize (TF-ranked disambiguation)
+            → materialize (n-gram disambiguation, TF tie-break)
               → restored encoding IDs → ds-ocr Decoder
 
 The gate_TF HLLSet is a content-addressed system-global built from the
@@ -139,7 +139,9 @@ class HLLSetFilter:
         2. HLLSet.from_tokens() hashes via MurmurHash3 into 32,768-bit bitmap
         3. Gate intersection: if gate_hllset is set, filter invalid bit positions
         4. TokenLut.record_all() increments TF for ALL tokens (monotonic CRDT)
-        5. materialize() returns highest-TF token at each active bit position
+        5. materialize() disambiguates LUT candidates with n-grams; TF only
+           finalizes the selection when more than one token still maps to the
+           same bits in the given HLLSet
 
         Args:
             data: Raw encoding ID bytes from ds-ocr vision encoder
@@ -168,7 +170,7 @@ class HLLSetFilter:
         else:
             filtered = hllset
 
-        # Materialize from filtered HLLSet: TF-ranked disambiguation
+        # Materialize from filtered HLLSet: n-gram disambiguation, TF tie-break
         materialized = hllset_py.materialize(filtered, self.lut)
 
         # Extract unigrams only for input count (no n-gram tokens)

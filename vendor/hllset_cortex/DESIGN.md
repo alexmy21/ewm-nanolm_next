@@ -28,7 +28,7 @@ consumes the restored IDs. hllset-cortex never sees real tokens.
 │  ║    → MurmurHash3 → HLLSet (32,768-bit fingerprint)       ║    │
 │  ║      → ∩ gate_TF HLLSet (decoder vocabulary filter)      ║    │
 │  ║        → TokenLut (monotonic TF, pre-gate)               ║    │
-│  ║          → materialize (TF-ranked disambiguation)        ║    │
+│  ║          → materialize (n-gram disambiguation, TF tie-break) ║    │
 │  ║                                                          ║    │
 │  ║  Results:                                                ║    │
 │  ║    1. Token-LUT: encoding_id → hash_position (+ TF)      ║    │
@@ -132,7 +132,9 @@ position (IICA). Multiple IDs may collide — the LUT resolves ambiguity.
 
 Maps bit positions back to encoding IDs. Starts empty (cold start),
 accumulates encoding IDs + TF monotonically as streams are ingested.
-Materialization selects highest-TF ID at each active bit position.
+Materialization disambiguates the LUT candidates with n-grams (multiple
+measurement views of the same stream); TF only finalizes the selection when
+more than one token still maps to the same bits in the given HLLSet.
 
 - Start: empty (cold start per STANDARD.md Appendix D)
 - Growth: each stream adds new IDs, increments TF for seen IDs
@@ -145,12 +147,12 @@ Three strategies in hllset-dsl, all accessible from Python:
 
 | Strategy | Binding | How it works |
 |----------|---------|--------------|
-| `materialize` (InLUT) | `hllset_py.materialize()` | Each set bit → lookup in LUT → return candidates (TF-ranked, unordered) |
+| `materialize` (InLUT) | `hllset_py.materialize()` | Each set bit → lookup in LUT → disambiguate candidates with n-grams, TF tie-break (unordered) |
 | `materialize_debruijn` | `hllset_py.materialize_debruijn()` | Build De Bruijn graph from bigrams, find Eulerian path — **order preserved** |
 | `materialize_top_n` | `hllset_py.materialize_top_n()` | Top-N tokens by TF across all active positions |
 
 ```python
-# Basic materialize (set-level, TF-ranked, no order)
+# Basic materialize (set-level, n-gram disambiguation, TF tie-break, no order)
 result = hllset_py.materialize(hllset, lut)
 
 # De Bruijn (ordered reconstruction):

@@ -17,7 +17,7 @@ Architecture per STANDARD.md:
     - Intersection with gate_TF = indirect bit-level filter [§4.3]
     - The gate is content-addressed, immutable, and idempotent (IICA)
     - The LUT is a persistent singleton with monotonic TF [Appendix D]
-    - Materialization uses TF-ranked disambiguation from hllset_py
+    - Materialization uses n-gram disambiguation with TF tie-break from hllset_py
     - No caal-llm dependency — direct hllset-next bindings
 """
 
@@ -144,7 +144,7 @@ class OCRPipeline:
         2. HLLSet.from_tokens() → 32,768-bit fingerprint
         3. Gate intersection: HLLSet ∩ gate_TF HLLSet (bit-level filter)
         4. TokenLut accumulates TF for ALL tokens (monotonic CRDT)
-        5. Materialize from filtered HLLSet (TF-ranked disambiguation)
+        5. Materialize from filtered HLLSet (n-gram disambiguation, TF tie-break)
         6. BPE encode: words → token IDs (ready for decoder)
         7. BPE decode: token IDs → text (for verification)
         """

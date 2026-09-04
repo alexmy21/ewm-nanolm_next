@@ -1997,7 +1997,7 @@ For developers moving from the old per-topic docs to this standard:
 Loading a LUT with a large external vocabulary (e.g., a 128K BPE tokenizer vocabulary)
 where all tokens have equal TF = 0 or TF = 1 causes **random materialization**.
 Each HLLSet bit position maps to multiple tokens in the LUT, and with equal TFs,
-the highest-TF tie-break is arbitrary. Jaccard drops to ~0.03.
+the TF tie-break is arbitrary. Jaccard drops to ~0.03.
 
 ### The Rule
 

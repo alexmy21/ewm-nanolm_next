@@ -1747,7 +1747,8 @@ higher-order n-gram accumulation.
 
 \subsubsection{Stage 7--8: Materializer + ds-Decoder as Type~2 (Executive) Perceptron}
 
-The materializer (TF-ranked disambiguation and De Bruijn reconstruction) and
+The materializer (n-gram disambiguation with TF as the final tie-break, and
+De Bruijn reconstruction) and
 the OCR decoder together form the \textbf{Type~2 perceptron}---the regulatory
 and executive layer.
 
@@ -1784,7 +1785,7 @@ and executive layer.
 \midrule
 Type~0 & Substrate   & ds-Encoder + MurmurHash3 & Reactive encoding ID hashing \\
 Type~1 & Forward     & Tokenizer + Gate + LUT   & Bootstrap views, validity filtering \\
-Type~2 & Executive   & Materializer + ds-Decoder& TF-ranked selection, coherence \\
+Type~2 & Executive   & Materializer + ds-Decoder& n-gram disambiguation, coherence \\
 \bottomrule
 \end{tabular}
 \end{center}
